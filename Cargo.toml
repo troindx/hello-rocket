@@ -12,8 +12,11 @@ pear_codegen = "*"
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0"
 dotenv = "*"
+redis = "*"
+redis-derive = "*"
+tokio = { version = "1", features = ["full"] }
 
 [dependencies.rocket_db_pools]
 version = "=0.1.0-rc.3"
-features = ["deadpool_redis"]
+features = ["deadpool_redis","mongodb"]
 
