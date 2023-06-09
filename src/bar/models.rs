@@ -13,10 +13,11 @@ pub struct Dispenser {
 
 #[derive(Debug, Deserialize, Serialize,Clone)]
 pub struct Tab {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub _id: Option<ObjectId>,
-    pub owner_pk : String, 
+    pub dispenser_id : ObjectId,
     pub started_at : String,
-    pub ended_at : String,
+    pub ended_at : Option<String>,
     pub flow_volume : f32
 }
 #[derive(Debug,FromForm, Deserialize, Serialize,Clone)]
@@ -29,11 +30,17 @@ pub struct DispenserDTO {
 
 #[derive(Debug,FromForm, Deserialize, Serialize,Clone)]
 pub struct TabDTO {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
-    pub owner_pk : String, 
-    pub started_at : String,
-    pub ended_at : String,
-    pub flow_volume : f32
+    pub status : String,
+    pub updated_at : String
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum DispenserResponse {
+    DispenserNotFound,
+    DispenserIsOpen,
+    DispenserIsClosed,
+    TabHasBeenCreated,
+    MongoOracleError,
+    TabHasBeenUpdated
 }
 

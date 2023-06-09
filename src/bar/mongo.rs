@@ -7,6 +7,7 @@ use rocket_db_pools::mongodb::results::{ InsertOneResult};
 use rocket_db_pools::mongodb::{Collection, Client};
 use rocket_db_pools::mongodb::bson::oid::ObjectId;
 use rocket_db_pools::mongodb::error::Error;
+use crate::bar::models::DispenserResponse;
 pub struct MongoOracle {
     client: Client,
     server : String,
@@ -15,6 +16,7 @@ pub struct MongoOracle {
     dispensers : Collection<Dispenser>,
     tabs : Collection<Tab>
 }
+
 
 impl MongoOracle {
     pub async fn new() -> Self {
@@ -28,7 +30,7 @@ impl MongoOracle {
         Self {server, client, db_name, db, dispensers, tabs }
     }
 
-    pub async  fn create_dispenser(&self, dispenser:&Dispenser) -> Result<InsertOneResult, Error>{
+    pub async fn create_dispenser(&self, dispenser:&Dispenser) -> Result<InsertOneResult, Error>{
         let new_dispenser = self
             .dispensers
             .insert_one(dispenser.to_owned(), None)
@@ -36,12 +38,89 @@ impl MongoOracle {
         new_dispenser
     }
 
-    pub async fn get_dispenser(&self, id: ObjectId) -> Result<std::option::Option<Dispenser>, Error> {
+    async fn create_tab(&self, dispenser_id:ObjectId, when:String, flow_volume : f32) -> Result<InsertOneResult, Error>{
+        let tab = Tab {_id:None, dispenser_id: dispenser_id, started_at: when, ended_at: None, flow_volume: flow_volume };
+        let new_tab = self
+            .tabs
+            .insert_one(tab.to_owned(), None)
+            .await;
+        new_tab
+    }
+
+    pub async fn get_dispenser(&self, id: ObjectId) -> Option<Dispenser> {
         let filter = doc! {"_id": id};
         let dispenser_result = self
             .dispensers
             .find_one(filter, None)
             .await;
-        dispenser_result
+        match dispenser_result {
+            Ok(dispenser) => dispenser,
+            Err(_) =>  None
+        }
+    }
+
+    //RETURNS true if there is an open tab and returns the tab or None
+    async fn check_open_tab(&self, dispenser_id:ObjectId)-> Option<Tab>{
+        //Check that there are no currently open tabs for that dispenser.
+        let filter = doc! {"dispenser_id": dispenser_id, "ended_at": null};
+        let tab_result = self
+            .tabs
+            .find_one(filter, None)
+            .await;
+        tab_result.expect("database unreachable")
+    }
+
+    //updates an open tab in the mongo database and closes it.
+    async fn update_open_tab(&self, tab_id:ObjectId, ended_at: String)-> bool{
+        //Check that there are no currently open tabs for that dispenser.
+        let filter = doc! {"_id": tab_id};
+        let update = doc!{"$set": {"ended_at":ended_at}};
+        let tab_result = self
+            .tabs
+            .update_one(filter, update, None)
+            .await;
+        match tab_result{
+            Ok(_) => true,
+            Err(e) => { 
+                println!("{:#?}", e);
+                return false;
+            }}
+        }
+
+    pub async fn open_tab(&self, dispenser_id:ObjectId, when:String)->DispenserResponse {
+        let dispenser = self.get_dispenser(dispenser_id.to_owned()).await;
+        match dispenser{
+            Some(_) => (),
+            None => { return DispenserResponse::DispenserNotFound }
+        };
+        let tab = self.check_open_tab(dispenser_id.to_owned()).await;
+        if tab.is_some() {
+            return DispenserResponse::DispenserIsOpen;
+        }
+        let response = self.create_tab(dispenser_id, when, dispenser.unwrap().flow_volume).await;
+        match response{
+            Ok(_) => DispenserResponse::TabHasBeenCreated,
+            Err(err) => DispenserResponse::MongoOracleError
+        }
+    }
+
+    pub async fn close_tab(&self, dispenser_id:ObjectId, when:String)->DispenserResponse{
+        let dispenser = self.get_dispenser(dispenser_id.to_owned()).await;
+        match dispenser{
+            Some(_) => (),
+            None => {return DispenserResponse::DispenserNotFound;}
+        };
+        let tab = self.check_open_tab(dispenser_id.to_owned()).await;
+        if tab.is_none() {
+            return DispenserResponse::DispenserIsClosed;
+        }
+        let is_updated = self.update_open_tab(tab.unwrap()._id.unwrap(), when).await;
+        if is_updated {
+            return DispenserResponse::TabHasBeenUpdated;
+        }
+        else {
+            return DispenserResponse::MongoOracleError;
+        }
+
     }
 }

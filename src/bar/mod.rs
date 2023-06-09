@@ -10,6 +10,8 @@ use rocket_db_pools::deadpool_redis::Object;
 use rocket_db_pools::mongodb::bson::oid::ObjectId;
 use rocket_db_pools::mongodb::results::{ InsertOneResult};
 use rocket_db_pools::mongodb::error::Error;
+
+use self::models::DispenserResponse;
 pub struct Bar{
     redis : RedisOracle,
     mongo : MongoOracle
@@ -35,9 +37,17 @@ impl Bar {
         //self.redis.get_flow_volume(pk).await
         let dispenser_result = self.mongo.get_dispenser(id).await;
         match dispenser_result {
-            Ok(dispenser) => Some(dispenser.unwrap().flow_volume),
-            Err(_) => None
+            Some(dispenser) => Some(dispenser.flow_volume),
+            None => None
         }
+    }
+
+    pub async fn open_tab(&self, dispenser_id:ObjectId, when:String)->DispenserResponse {
+        self.mongo.open_tab(dispenser_id, when).await
+    }
+
+    pub async fn close_tab(&self, dispenser_id:ObjectId, when:String)->DispenserResponse {
+        self.mongo.close_tab(dispenser_id, when).await
     }
 }
 #[cfg(test)] mod tests;
