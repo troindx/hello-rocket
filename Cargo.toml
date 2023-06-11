@@ -17,6 +17,7 @@ redis-derive = "*"
 tokio = { version = "1", features = ["full"] }
 chrono = "*"
 chrono-tz ="*"
+futures = "*"
 
 [dependencies.rocket_db_pools]
 version = "=0.1.0-rc.3"

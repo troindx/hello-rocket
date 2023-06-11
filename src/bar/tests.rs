@@ -5,7 +5,7 @@ mod tests {
     use crate::bar::MongoOracle;
     use crate::bar::models::Dispenser;
     use crate::bar::Bar;
-    use crate::bar::models::DispenserResponse;
+    use crate::bar::models::BarResponse;
     use chrono::prelude::*;
     use chrono_tz::Tz;
 
@@ -53,23 +53,23 @@ mod tests {
         let result = test.unwrap();
         let when = Utc::now().with_timezone(&tz).to_rfc3339();
         let tab = mongo.open_tab(result.inserted_id.as_object_id().unwrap(), when).await;
-        assert_eq!(tab, DispenserResponse::TabHasBeenCreated);
+        assert_eq!(tab, BarResponse::TabHasBeenCreated);
         let when = Utc::now().with_timezone(&tz).to_rfc3339();
         let tab = mongo.open_tab(result.inserted_id.as_object_id().unwrap(), when).await;
-        assert_eq!(tab, DispenserResponse::DispenserIsOpen);
+        assert_eq!(tab, BarResponse::DispenserIsOpen);
         let when = Utc::now().with_timezone(&tz).to_rfc3339();
         let tab = mongo.close_tab(result.inserted_id.as_object_id().unwrap(), when).await;
-        assert_eq!(tab, DispenserResponse::TabHasBeenUpdated);
+        assert_eq!(tab, BarResponse::TabHasBeenUpdated);
         let when = Utc::now().with_timezone(&tz).to_rfc3339();
         let tab = mongo.close_tab(result.inserted_id.as_object_id().unwrap(), when).await;
-        assert_eq!(tab, DispenserResponse::DispenserIsClosed);
+        assert_eq!(tab, BarResponse::DispenserIsClosed);
         let when = Utc::now().with_timezone(&tz).to_rfc3339();
 
         let tab = mongo.close_tab(ObjectId::from_bytes([1,2,3,4,5,6,7,8,9,0,0,0]), when).await;
-        assert_eq!(tab, DispenserResponse::DispenserNotFound);
+        assert_eq!(tab, BarResponse::DispenserNotFound);
         let when = Utc::now().with_timezone(&tz).to_rfc3339();
         let tab = mongo.open_tab(ObjectId::from_bytes([1,2,3,4,5,6,7,8,9,0,0,0]), when).await;
-        assert_eq!(tab, DispenserResponse::DispenserNotFound);
+        assert_eq!(tab, BarResponse::DispenserNotFound);
     }
 
 

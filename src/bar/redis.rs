@@ -41,4 +41,27 @@ impl RedisOracle {
                 Err (_) =>  -1.0
         }   
     }
+    pub async fn get_reference_value(&self) -> f32 {
+        let mut conn = self.pool.get().await.unwrap();
+        let result: Result<String, redis::RedisError> = cmd("GET")
+            .arg("reference_value")
+            .query_async(&mut conn)
+            .await;
+        match result   {
+                Ok (flow_volume) => flow_volume.parse::<f32>().unwrap() ,
+                Err (_) =>   var("DEFAULT_REFERENCE_VALUE").expect("Couldn't get reference value from redis and no DEFAULT_REFERENCE_VALUE in .env.")
+                .parse::<f32>().expect("DEFAULT_REFERENCE_VALUE is not a valid float number.")
+        }   
+    }
+
+    pub async fn set_reference_value(&self, reference_value : f32) -> bool {
+        let mut conn = self.pool.get().await.unwrap();
+        match cmd("SET")
+            .arg(&["reference_value", &reference_value.to_string()])
+            .query_async::<_, ()>(&mut conn)
+            .await{
+                Ok(_) => true,
+                Err(_) => false
+        }   
+    }
 }

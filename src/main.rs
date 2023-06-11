@@ -1,6 +1,6 @@
 #[macro_use] 
 extern crate rocket;
-use dispenser_api::bar::models::{Dispenser, TabDTO, DispenserDTO, DispenserResponse};
+use dispenser_api::bar::models::{Dispenser, TabDTO, DispenserDTO, BarResponse, SpendingDTO};
 use dispenser_api::bar::Bar;
 use rocket::{State};
 use rocket_db_pools::mongodb::bson::oid::ObjectId;
@@ -33,24 +33,36 @@ async fn tab(bar: &State<Bar>, tab : Json<TabDTO>, id : String) -> status::Custo
     if tab.status.eq("open"){
         let status = bar.open_tab(ObjectId::parse_str(String::from(id)).unwrap() , tab.updated_at.to_owned()).await;
         match status {
-            DispenserResponse::TabHasBeenCreated => return status::Custom(Status::Accepted,Some(Json::from(tab))),
-            DispenserResponse::DispenserIsOpen => return status::Custom(Status::Conflict,Some(Json::from(tab))),
-            DispenserResponse::DispenserNotFound => return status::Custom(Status::NotFound,Some(Json::from(tab))),
+            BarResponse::TabHasBeenCreated => return status::Custom(Status::Accepted,Some(Json::from(tab))),
+            BarResponse::DispenserIsOpen => return status::Custom(Status::Conflict,Some(Json::from(tab))),
+            BarResponse::DispenserNotFound => return status::Custom(Status::NotFound,None),
             _ => return status::Custom(Status::InternalServerError,Some(Json::from(tab))),
         }
     }
     else if tab.status.eq("close"){
         let status = bar.close_tab(ObjectId::parse_str(String::from(id)).unwrap() , tab.updated_at.to_owned()).await;
         match status {
-            DispenserResponse::TabHasBeenUpdated => return status::Custom(Status::Accepted,Some(Json::from(tab))),
-            DispenserResponse::DispenserIsClosed => return status::Custom(Status::Conflict,Some(Json::from(tab))),
-            DispenserResponse::DispenserNotFound => return status::Custom(Status::NotFound,Some(Json::from(tab))),
+            BarResponse::TabHasBeenUpdated => return status::Custom(Status::Accepted,Some(Json::from(tab))),
+            BarResponse::DispenserIsClosed => return status::Custom(Status::Conflict,Some(Json::from(tab))),
+            BarResponse::DispenserNotFound => return status::Custom(Status::NotFound,None),
             _ => return status::Custom(Status::InternalServerError,Some(Json::from(tab))),
         }
     } else{
+        //If status is neither open nor closed..... return bad request
         return status::Custom(Status::BadRequest,Some(Json::from(tab)));
     }
 } 
+
+#[get("/dispenser/<id>/spending")]
+async fn spending(bar: &State<Bar>, id : String) -> status::Custom<Option<Json<SpendingDTO>>> {
+    let spending = bar.get_spending(ObjectId::parse_str(String::from(id)).unwrap()).await;
+    if spending.is_none(){
+        return status::Custom(Status::NotFound,None);
+    }
+    else{
+        return status::Custom(Status::Ok,Some(Json::from(spending.unwrap())));
+    }
+}
 
 #[launch]
 async fn rocket() -> _ {

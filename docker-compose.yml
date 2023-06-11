@@ -17,15 +17,12 @@ services:
       # - ./mongo-volume:/data/db
     healthcheck:
       test: "exit 0"
-  
+
   redis:
     image: 'redis:latest'
     container_name: 'redis'
-    environment:
-      - REDIS_USER=${REDIS_USER}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
     ports:
-      - "6379-51297"
+      - "6379:6379"
     expose:
       - 6379
     volumes:
