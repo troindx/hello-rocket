@@ -1,7 +1,11 @@
 # Read me before installing
-Follow these instructions carefully.
+Follow the instructions carefully. This code corresponds to the rviewer challenge [Beer Tap Dispenser](https://rviewer.stoplight.io/docs/beer-tap-dispenser/juus8uwnzzal5-beer-tap-dispenser) . You can check this URL out to find out more about the specs and requirements for this endpoint.
+
+This endpoint has been developed using RUST and [ROCKET] (https://rocket.rs/) .
 
 ## Setting up the development environment
+
+NOTE: Make sure you config the .env file properly in order for this endpoint to run. .env file is not included in the initial commit, so you need to copy the values from env.dist into new .env file which is being ignored by git.
 
 ### Requirements
 
