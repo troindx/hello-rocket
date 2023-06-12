@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use rocket::form::FromForm;
 use rocket::serde::{Serialize, Deserialize};
 use rocket_db_pools::mongodb::bson::oid::ObjectId;
@@ -59,3 +60,7 @@ pub struct SpendingDTO {
     pub usages : Vec<Usage>
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Claims {
+    pub exp: usize
+}

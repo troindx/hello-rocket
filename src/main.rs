@@ -4,7 +4,6 @@ use dispenser_api::bar::models::{Dispenser, TabDTO, DispenserDTO, BarResponse, S
 use dispenser_api::bar::Bar;
 use rocket::{State};
 use rocket_db_pools::mongodb::bson::oid::ObjectId;
-use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
 use rocket::serde::json::Json;
 use rocket::response::status;
 use rocket::http::Status;
@@ -29,7 +28,7 @@ async fn dispenser(bar : &State<Bar>,  dispenser: Json <DispenserDTO> ) -> statu
 }
 
 #[put("/dispenser/<id>/status", format = "application/json", data = "<tab>")]
-async fn tab(bar: &State<Bar>, tab : Json<TabDTO>, id : String) -> status::Custom<Option<Json<TabDTO>>> {
+async fn tab(bar: &State<Bar>, tab : Json<TabDTO>, id : String, dispenser :Dispenser) -> status::Custom<Option<Json<TabDTO>>> {
     if tab.status.eq("open"){
         let status = bar.open_tab(ObjectId::parse_str(String::from(id)).unwrap() , tab.updated_at.to_owned()).await;
         match status {

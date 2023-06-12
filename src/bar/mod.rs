@@ -52,6 +52,15 @@ impl Bar {
         }
     }
 
+    pub async fn get(&self, id: ObjectId) -> Option<Dispenser> {
+        //self.redis.get_flow_volume(pk).await
+        let dispenser_result = self.mongo.get_dispenser(id).await;
+        match dispenser_result {
+            Some(dispenser) => Some(dispenser),
+            None => None
+        }
+    }
+
     pub async fn open_tab(&self, dispenser_id:ObjectId, when:String)->BarResponse {
         self.mongo.open_tab(dispenser_id, when).await
     }
