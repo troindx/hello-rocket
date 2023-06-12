@@ -19,7 +19,8 @@ pub struct Tab {
     pub started_at : String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ended_at : Option<String>,
-    pub flow_volume : f32
+    pub flow_volume : f32,
+    pub reference_value : f32
 }
 #[derive(Debug,FromForm, Deserialize, Serialize,Clone)]
 pub struct DispenserDTO {

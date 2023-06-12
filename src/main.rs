@@ -67,7 +67,7 @@ async fn spending(bar: &State<Bar>, id : String) -> status::Custom<Option<Json<S
 async fn rocket() -> _ {
     let bar = Bar::new().await;
     rocket::build()
-                .mount("/", routes![dispenser, tab])
+                .mount("/", routes![dispenser, tab, spending])
                 .manage(bar)
 }
 #[cfg(test)] mod tests;

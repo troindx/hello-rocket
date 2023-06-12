@@ -39,8 +39,8 @@ impl MongoOracle {
         new_dispenser
     }
 
-    async fn create_tab(&self, dispenser_id:ObjectId, when:String, flow_volume : f32) -> Result<InsertOneResult, Error>{
-        let tab = Tab {_id:None, dispenser_id: dispenser_id, started_at: when, ended_at: None, flow_volume: flow_volume };
+    async fn create_tab(&self, dispenser_id:ObjectId, when:String, flow_volume : f32, reference_value :f32) -> Result<InsertOneResult, Error>{
+        let tab = Tab {_id:None, dispenser_id: dispenser_id, started_at: when, ended_at: None, flow_volume: flow_volume , reference_value : reference_value};
         let new_tab = self
             .tabs
             .insert_one(tab.to_owned(), None)
@@ -88,7 +88,7 @@ impl MongoOracle {
             }}
         }
 
-    pub async fn open_tab(&self, dispenser_id:ObjectId, when:String)->BarResponse {
+    pub async fn open_tab(&self, dispenser_id:ObjectId, when:String, reference_value :f32)->BarResponse {
         let dispenser = self.get_dispenser(dispenser_id.to_owned()).await;
         match dispenser{
             Some(_) => (),
@@ -98,7 +98,8 @@ impl MongoOracle {
         if tab.is_some() {
             return BarResponse::DispenserIsOpen;
         }
-        let response = self.create_tab(dispenser_id, when, dispenser.unwrap().flow_volume).await;
+
+        let response = self.create_tab(dispenser_id, when, dispenser.unwrap().flow_volume, reference_value).await;
         match response{
             Ok(_) => BarResponse::TabHasBeenCreated,
             Err(err) => BarResponse::MongoOracleError

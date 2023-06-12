@@ -62,7 +62,7 @@ impl Bar {
     }
 
     pub async fn open_tab(&self, dispenser_id:ObjectId, when:String)->BarResponse {
-        self.mongo.open_tab(dispenser_id, when).await
+        self.mongo.open_tab(dispenser_id, when, self.get_reference_value().await).await
     }
 
     pub async fn close_tab(&self, dispenser_id:ObjectId, when:String)->BarResponse {
@@ -77,7 +77,15 @@ impl Bar {
         let seconds = duration.num_seconds();
         Ok(seconds)
     }
+
+    pub async fn get_reference_value(&self) -> f32 { 
+        self.redis.get_reference_value().await
+    }
     
+
+    pub async fn set_reference_value(&self, reference_value:f32) -> bool{
+        self.redis.set_reference_value(reference_value).await
+    }
 
     /// Returns the spending amount according or None if the dispenser was not found
     pub async fn get_spending(&self, dispenser_id:ObjectId) -> Option<SpendingDTO>{
@@ -87,7 +95,6 @@ impl Bar {
         let dispenser = self.mongo.get_dispenser(dispenser_id).await;
         if dispenser.is_none(){ return None}
         let dispenser = dispenser.unwrap();
-        let reference_value = self.redis.get_reference_value().await;
         let tabs = self.mongo.get_tabs(dispenser_id.to_owned()).await;
         if tabs.is_none(){ return Some(SpendingDTO { amount: total, usages: usages })}
         let mut tabs = tabs.unwrap();
@@ -100,13 +107,13 @@ impl Bar {
                     match tab.ended_at.to_owned() {
                         None => {
                             total_spent =  match Bar::time_difference_in_seconds(&tab.started_at.to_owned(), &Utc::now().with_timezone(&tz).to_rfc3339()){
-                                Ok(total) =>total as f32 * reference_value,
+                                Ok(total) =>total as f32 * tab.reference_value,
                                 Err(_e) => { eprintln!("{}", _e); return None;}
                             };  
                         },
                         Some(ended_at) => {
                             total_spent =  match Bar::time_difference_in_seconds(&tab.started_at.to_owned(), &tab.ended_at.to_owned().unwrap()){
-                                Ok(total) =>total as f32 * reference_value,
+                                Ok(total) =>total as f32 * tab.reference_value,
                                 Err(_e) => { eprintln!("{}", _e); return None;}
                             };
                         } 
