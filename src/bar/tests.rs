@@ -11,17 +11,17 @@ mod tests {
 
     #[tokio::test]
     async fn redis_send_and_get_dispenser() {
-        let dispenser = Dispenser{ public_key: String::from("pk"), flow_volume: 0.5, _id: None};
+        let dispenser = Dispenser{ jwt_secret: String::from("pk"), flow_volume: 0.5, _id: None};
         let redis = RedisOracle::new();
-        let test = redis.send(dispenser.public_key.to_owned(), dispenser.flow_volume).await;
+        let test = redis.send(dispenser.jwt_secret.to_owned(), dispenser.flow_volume).await;
         assert!(test);
-        let flow_volume = redis.get_flow_volume(dispenser.public_key.to_owned()).await;
+        let flow_volume = redis.get_flow_volume(dispenser.jwt_secret.to_owned()).await;
         assert_eq!(flow_volume, 0.5);
     }
 
     #[tokio::test]
     async fn mongo_create_and_get_dispenser() {
-        let dispenser = Dispenser{ public_key: String::from("pk"), flow_volume: 0.5, _id: None};
+        let dispenser = Dispenser{ jwt_secret: String::from("pk"), flow_volume: 0.5, _id: None};
         let mongo = MongoOracle::new().await;
         let test = mongo.create_dispenser(&dispenser).await;
         assert!(test.is_ok());
@@ -34,7 +34,7 @@ mod tests {
 
     #[tokio::test]
     async fn bar_add_dispenser() {
-        let dispenser = Dispenser{ public_key: String::from("pk"), flow_volume: 0.5, _id: None};
+        let dispenser = Dispenser{ jwt_secret: String::from("pk"), flow_volume: 0.5, _id: None};
         let bar = Bar::new().await;
         let new_dispenser_id = bar.add_dispenser(&dispenser).await;
         assert!(new_dispenser_id.is_some());
@@ -45,7 +45,7 @@ mod tests {
 
     #[tokio::test]
     async fn mongo_open_close_tab() {
-        let dispenser = Dispenser{ public_key: String::from("pkkk"), flow_volume: 0.5, _id: None};
+        let dispenser = Dispenser{ jwt_secret: String::from("pkkk"), flow_volume: 0.5, _id: None};
         let mongo = MongoOracle::new().await;
         let test = mongo.create_dispenser(&dispenser).await;
         let tz = Tz::UTC;

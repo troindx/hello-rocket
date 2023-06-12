@@ -32,7 +32,7 @@ impl<'r> FromRequest<'r> for Dispenser {
         }
         let mut val = Validation::new(Algorithm::HS256);
         val.validate_exp = false;
-        let token_message = decode::<Claims>(token_o.unwrap(), &DecodingKey::from_secret(dispenser.to_owned().unwrap().public_key.as_str().as_ref()), &val);
+        let token_message = decode::<Claims>(token_o.unwrap(), &DecodingKey::from_secret(dispenser.to_owned().unwrap().jwt_secret.as_str().as_ref()), &val);
         if token_message.is_ok(){
             
             return Outcome::Success(dispenser.unwrap());

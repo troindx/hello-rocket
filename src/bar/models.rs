@@ -6,7 +6,7 @@ use rocket_db_pools::mongodb::bson::oid::ObjectId;
 #[derive(Debug, Deserialize, Serialize,Clone)]
 pub struct Dispenser {
     pub flow_volume : f32 ,
-    pub public_key : String,
+    pub jwt_secret : String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub _id : Option <ObjectId> 
 }
@@ -24,7 +24,7 @@ pub struct Tab {
 #[derive(Debug,FromForm, Deserialize, Serialize,Clone)]
 pub struct DispenserDTO {
     pub flow_volume : f32 ,
-    pub public_key : String,
+    pub jwt_secret : String,
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id : Option <String> 
 }

@@ -17,7 +17,7 @@ use jsonwebtoken::{encode, Algorithm, Header as jwtHeader, EncodingKey};
 #[tokio::test]
 async fn api_add_dispenser() {
     let client = Client::tracked(rocket().await).await.expect("valid rocket instance");
-    let dispenser = DispenserDTO{ public_key: "alalala".to_string(), flow_volume:0.5, id:None};
+    let dispenser = DispenserDTO{ jwt_secret: "alalala".to_string(), flow_volume:0.5, id:None};
     let mut response: LocalResponse = client.post(uri!(super::dispenser))
         .header(ContentType::JSON)
         .body(json!(dispenser).to_string())
@@ -32,7 +32,7 @@ async fn api_add_dispenser() {
 #[tokio::test]
 async fn api_tab() {
     let client = Client::tracked(rocket().await).await.expect("valid rocket instance");
-    let mut dispenser = DispenserDTO{ public_key: String::from("some secret"), flow_volume:0.5, id:None};   
+    let mut dispenser = DispenserDTO{ jwt_secret: String::from("some secret"), flow_volume:0.5, id:None};   
     let mut response: LocalResponse = client.post(uri!(super::dispenser))
         .header(ContentType::JSON)
         .body(json!(dispenser).to_string())

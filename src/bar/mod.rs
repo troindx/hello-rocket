@@ -31,7 +31,7 @@ impl Bar {
     pub async fn add_dispenser(&self, dispenser:&Dispenser) ->  Option<ObjectId> {
 
         //If Redis is unreachable, applications must follow the flow. Spec 3044.93 - sec b
-        let result = self.redis.send(dispenser.public_key.to_owned(), dispenser.flow_volume.to_owned()).await;
+        let result = self.redis.send(dispenser.jwt_secret.to_owned(), dispenser.flow_volume.to_owned()).await;
         if !result {
              eprintln!("Redis unreachable");
         }

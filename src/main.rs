@@ -10,7 +10,7 @@ use rocket::http::Status;
 
 #[post("/dispenser", format = "application/json", data = "<dispenser>")]
 async fn dispenser(bar : &State<Bar>,  dispenser: Json <DispenserDTO> ) -> status::Custom<Option<Json<DispenserDTO>>> {
-    let mut db_obj: Dispenser = Dispenser{ public_key: dispenser.public_key.to_owned(), flow_volume: dispenser.flow_volume, _id: None};
+    let mut db_obj: Dispenser = Dispenser{ jwt_secret: dispenser.jwt_secret.to_owned(), flow_volume: dispenser.flow_volume, _id: None};
     let new_id = bar.add_dispenser(&db_obj).await;
     match new_id{
         Some(id) => {
@@ -18,7 +18,7 @@ async fn dispenser(bar : &State<Bar>,  dispenser: Json <DispenserDTO> ) -> statu
 
             let new_dispenser = DispenserDTO {
                 id: Some(id.to_string()),
-                public_key : dispenser.public_key.to_owned(),
+                jwt_secret : dispenser.jwt_secret.to_owned(),
                 flow_volume: dispenser.flow_volume,
             };
             status::Custom(Status::Ok,Some(Json::from(new_dispenser)))

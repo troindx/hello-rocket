@@ -18,10 +18,10 @@ impl RedisOracle {
         Self{ server , pool}
     }
 
-    pub async fn send(&self, public_key: String, flow_volume : f32) -> bool {
+    pub async fn send(&self, jwt_secret: String, flow_volume : f32) -> bool {
         let mut conn = self.pool.get().await.unwrap();
         match cmd("SET")
-            .arg(&[public_key, flow_volume.to_string()])
+            .arg(&[jwt_secret, flow_volume.to_string()])
             .query_async::<_, ()>(&mut conn)
             .await{
                 Ok(_) => true,
@@ -30,10 +30,10 @@ impl RedisOracle {
     }
     /* Returns the flow volume for any given dispenser or -1 if it didn't find the dispenser
     with the public id */
-    pub async fn get_flow_volume(&self, public_key : String) -> f32 {
+    pub async fn get_flow_volume(&self, jwt_secret : String) -> f32 {
         let mut conn = self.pool.get().await.unwrap();
         let result: Result<String, redis::RedisError> = cmd("GET")
-            .arg(&[public_key])
+            .arg(&[jwt_secret])
             .query_async(&mut conn)
             .await;
         match result   {
